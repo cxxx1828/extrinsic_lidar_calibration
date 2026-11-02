@@ -1,31 +1,26 @@
 
-#include <memory>  // Must come before the rs_driver headers
+#include <memory>  
 
 #include <rs_driver/api/lidar_driver.hpp>
-#include <rs_driver/msg/pcl_point_cloud_msg.hpp>  // defines robosense::lidar::PointCloudT
+#include <rs_driver/msg/pcl_point_cloud_msg.hpp>
 #include <pcl/point_types.h>
 #include <pcl/io/pcd_io.h>
 
 #include <string>
 #include <chrono>
-#include <thread>       // this_thread::sleep_for -- explicit to avoid the previous include bug
+#include <thread>       
 #include <fstream>
 #include <iostream>
 #include <cstdio>       
 #include <stdexcept>
-#include <unistd.h>     // readlink
-#include <linux/limits.h> // PATH_MAX
+#include <unistd.h>     
+#include <linux/limits.h> 
 
 using namespace robosense::lidar;
 
 typedef pcl::PointXYZI PointT;
 typedef PointCloudT<PointT> PointCloudMsg;
 
-// --- Automatic project root directory detection ---
-// The executable always resides in <project_root>/build/lidar_capture_tool,
-// so derive <project_root> reliably from /proc/self/exe regardless of
-// where the tool was launched. This permanently resolves the cwd dependency
-// that previously caused pcl::IOException.
 std::string getExecutableDir()
 {
     char buf[PATH_MAX];
@@ -39,8 +34,8 @@ std::string getExecutableDir()
     return exe_path.substr(0, exe_path.find_last_of('/'));
 }
 
-static const std::string EXE_DIR      = getExecutableDir();       // .../lidar_calibration/build
-static const std::string PROJECT_ROOT = EXE_DIR + "/..";           // .../lidar_calibration
+static const std::string EXE_DIR      = getExecutableDir();       
+static const std::string PROJECT_ROOT = EXE_DIR + "/..";           
 static const std::string OUTPUT_DIR   = PROJECT_ROOT + "/calib_images/lidar/";
 static const std::string TRIGGER_FILE = OUTPUT_DIR + ".trigger";
 
@@ -51,12 +46,10 @@ std::shared_ptr<PointCloudMsg> pointCloudGetCallback()
 
 void pointCloudPutCallback(std::shared_ptr<PointCloudMsg> msg)
 {
-    // Save ONLY when the RGB script leaves a trigger -- otherwise we would
-    // again get hundreds of .pcd files per second unrelated to the RGB capture.
     std::ifstream trigger(TRIGGER_FILE);
     if (!trigger.good())
     {
-        return;  // no trigger; skip this frame
+        return;  
     }
 
     std::string index;
@@ -65,7 +58,7 @@ void pointCloudPutCallback(std::shared_ptr<PointCloudMsg> msg)
 
     if (index.empty())
     {
-        return;  // trigger file is (still) empty -- wait for the next frame
+        return;  
     }
 
     std::string filename = OUTPUT_DIR + "lidar_" + index + ".pcd";
@@ -79,12 +72,12 @@ void pointCloudPutCallback(std::shared_ptr<PointCloudMsg> msg)
         std::cerr << "Failed to save " << filename << ": " << e.what() << "\n";
     }
 
-    std::remove(TRIGGER_FILE.c_str());  // trigger has been consumed
+    std::remove(TRIGGER_FILE.c_str());  
 }
 
 void exceptionCallback(const Error& code)
 {
-    // Log and continue.
+    // Log 
 }
 
 int main()
