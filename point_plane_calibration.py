@@ -83,8 +83,6 @@ def board_plane_in_camera(img_pts, obj_pts, K, dist):
     return normal_cam, point_cam, center_cam
 
 
-# Physical board dimensions (9x6 inner grid + margins, ~10x7 squares
-# of 29mm). Slightly enlarged for tolerance.
 BOARD_WIDTH_M = 10 * 0.029 * 1.15
 BOARD_HEIGHT_M = 7 * 0.029 * 1.15
 
@@ -124,7 +122,6 @@ def extract_lidar_plane_points(pcd_path):
     if len(coplanar_pts) < 10:
         return None
 
-    # 2D projection of coplanar points onto the plane (u,v basis around the normal)
     arbitrary = np.array([1.0, 0.0, 0.0]) if abs(normal[0]) < 0.9 else np.array([0.0, 1.0, 0.0])
     u_axis = np.cross(normal, arbitrary); u_axis /= np.linalg.norm(u_axis)
     v_axis = np.cross(normal, u_axis)
@@ -132,9 +129,7 @@ def extract_lidar_plane_points(pcd_path):
     rel = coplanar_pts - board_centroid
     uv = np.stack([rel @ u_axis, rel @ v_axis], axis=1).astype(np.float32)
 
-    # PCA within the uv plane itself to find the board's principal
-    # orientation (since the rectangle isn't necessarily aligned with the
-    # u_axis/v_axis choice above).
+
     uv_cov = np.cov(uv.T)
     uv_evals, uv_evecs = np.linalg.eigh(uv_cov)
     major_axis = uv_evecs[:, np.argmax(uv_evals)]
@@ -144,9 +139,7 @@ def extract_lidar_plane_points(pcd_path):
     along_major = rel_uv @ major_axis
     along_minor = rel_uv @ minor_axis
 
-    # The rectangle uses a half-extent in each direction -- the board's
-    # larger dimension follows major_axis (detected as the largest
-    # variance), the smaller follows minor_axis.
+
     half_major = max(BOARD_WIDTH_M, BOARD_HEIGHT_M) / 2
     half_minor = min(BOARD_WIDTH_M, BOARD_HEIGHT_M) / 2
     on_board_2d = (np.abs(along_major) < half_major) & (np.abs(along_minor) < half_minor)
@@ -196,7 +189,7 @@ def collect_frames():
     return frames, K, dist
 
 
-CENTER_WEIGHT = 40.0  # balances the center constraint against the large number of plane points
+CENTER_WEIGHT = 40.0  
 
 def residuals(params, frames):
     """Point-to-plane + board-center point-to-point (resolves the translation
