@@ -16,7 +16,7 @@ OUTPUT_PATH = "results/rgb_intrinsics.yaml"
 def build_object_points():
     objp = np.zeros((ROWS_INNER * COLS_INNER, 3), dtype=np.float32)
     objp[:, :2] = np.mgrid[0:COLS_INNER, 0:ROWS_INNER].T.reshape(-1, 2)
-    objp *= (SQUARE_SIZE_MM / 1000.0)  # meters, consistent with the lidar side
+    objp *= (SQUARE_SIZE_MM / 1000.0)  
     return objp
 
 def calibrate():
@@ -29,7 +29,7 @@ def calibrate():
         img = cv2.imread(rgb_path)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         if image_size is None:
-            image_size = gray.shape[::-1]  # (width, height)
+            image_size = gray.shape[::-1]  
 
         found, corners = find_chessboard(gray, COLS_INNER, ROWS_INNER)
         if not found:
