@@ -48,9 +48,6 @@ def capture():
                 basename = f"img_{count:03d}.png"
                 cv2.imwrite(os.path.join(RGB_DIR, basename), rgb_bgr)
 
-                # Trigger lidar_capture_tool to save the CORRESPONDING .pcd --
-                # atomic write (tmp file + rename) so the lidar side never
-                # reads a partially written trigger.
                 tmp_path = LIDAR_TRIGGER_FILE + ".tmp"
                 with open(tmp_path, "w") as f:
                     f.write(f"{count:03d}")
